@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letter Cover Animation</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      touch-action: none;
+    }
+
+    .envelope {
+      position: relative;
+      width: 90vw;
+      max-width: 320px;
+      aspect-ratio: 3 / 2;
+      background: #e63946;
+      border-radius: 10px;
+      overflow: hidden;
+      perspective: 1200px;
+      user-select: none;
+    }
+
+    .hint {
+      position: absolute;
+      bottom: -30px;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .flap {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #d62828;
+      clip-path: polygon(0 0, 100% 0, 50% 50%);
+      transform-origin: top;
+      transition: transform 0.6s ease;
+      z-index: 3;
+    }
+
+    .letter {
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      top: 5%;
+      left: 5%;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transform: translateY(100%);
+      transition: transform 0.6s ease 0.3s;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .fold {
+      position: absolute;
+      width: 100%;
+      height: 50%;
+      left: 0;
+      background: white;
+      backface-visibility: hidden;
+    }
+
+    .fold.top {
+      top: 0;
+      transform-origin: bottom;
+      transform: rotateX(-90deg);
+      transition: transform 0.6s ease 0.8s;
+    }
+
+    .fold.bottom {
+      bottom: 0;
+      transform-origin: top;
+      transform: rotateX(90deg);
+      transition: transform 0.6s ease 1.2s;
+    }
+
+    .content {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      text-align: left;
+      opacity: 0;
+      transition: opacity 0.5s ease 1.6s;
+      padding: 15px;
+      box-sizing: border-box;
+      overflow-y: auto; /* enable scroll */
+    }
+
+    h2 {
+      font-size: clamp(18px, 5vw, 24px);
+      margin-bottom: 10px;
+    }
+
+    .typing {
+      border-right: 2px solid black;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 3s steps(30, end) forwards, blink 0.7s infinite;
+      animation-delay: 2s;
+      font-size: clamp(12px, 4vw, 16px);
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+
+    .open .flap { transform: rotateX(180deg); }
+    .open .letter { transform: translateY(0); }
+    .open .fold.top { transform: rotateX(0deg); }
+    .open .fold.bottom { transform: rotateX(0deg); }
+    .open .content { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="envelope" id="env">
+  <div class="flap"></div>
+  <div class="letter">
+    <div class="fold top"></div>
+    <div class="fold bottom"></div>
+    <div class="content">
+      <div style="line-height:1.6; font-size:14px;">
+        <h2>💌 Dear Chinnu,</h2>
+        <p>
+          I’m so sorry for what I said that day. I know it hurt you a lot, and for me too it wasn’t easy.
+        </p>
+        <p>
+          I know I’m not a good explainer… what I try to say often comes out in a different meaning.
+        </p>
+        <p>
+          But one thing I really want you to know — no one can ever replace your place in my heart or in my life.
+        </p>
+        <p>
+          There’s no one like you… you are truly one of a kind. A paglu like you will never come again in my life.
+        </p>
+        <p>
+          After my mom, you are the most important person in my life.
+        </p>
+        <p>
+          I know I made a mistake… and I am really sorry.
+        </p>
+        <p>
+          I will always love you till my last breath. 💖
+        </p>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="hint">Swipe up ⬆️</div>
+</div>
+
+<!-- Opening sound -->
+<audio id="openSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
+<!-- Background Music -->
+<audio id="bgMusic" src="YOUR_MOOCHAVA_PECHAVA_AUDIO.mp3" preload="auto" loop></audio>
+
+<script>
+  const env = document.getElementById('env');
+  const sound = document.getElementById('openSound');
+  const music = document.getElementById('bgMusic');
+
+  const MUSIC_DELAY = 1200; // sync with animation (ms)
+  const MUSIC_START_TIME = 10; // start from 10s of song (optional highlight part)
+
+  let startY = 0;
+  let isTouching = false;
+
+  function playSound() {
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+  }
+
+  function playMusicSynced() {
+    setTimeout(() => {
+      music.currentTime = MUSIC_START_TIME; // jump to best part
+      music.volume = 0.6;
+      music.play().catch(() => {});
+    }, MUSIC_DELAY);
+  }
+
+  function openEnvelope() {
+    if (!env.classList.contains('open')) {
+      env.classList.add('open');
+      playSound();
+      playMusicSynced();
+    }
+  }
+
+  env.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+    isTouching = true;
+  });
+
+  env.addEventListener('touchmove', (e) => {
+    if (!isTouching) return;
+    const currentY = e.touches[0].clientY;
+    const diff = startY - currentY;
+
+    if (diff > 60) {
+      openEnvelope();
+      isTouching = false;
+    }
+  });
+
+  env.addEventListener('touchend', () => {
+    isTouching = false;
+  });
+
+  env.addEventListener('click', () => {
+    openEnvelope();
+  });
+</script>
+
+</body>
+</html>
